@@ -1,127 +1,230 @@
-#include<stdio.h>
-#include<conio.h>
-int main()
-{
-float draw,dep,transfer;
-char name[24];
-float balance=40000;
-int account,account1,account2;
-int type;
-int transaction=1;
-printf("\n\t\t\t\tBANKING SYSTEM\n\n");
-printf("\t\t\4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4\n");
-printf("\t\t\4\t\t\t\t\t\t\4\n");
-printf("\t\t\4\t\t\t\t\t\t\4\n");
-printf("\t\t\4\tWELCOME TO OUR CBI BANKING SYSTEM\t\t\4\n");
-printf("\t\t\4\t\t\t\t\t\t\4\n");
-printf("\t\t\4\t\t\t\t\t\t\4\n");
-printf("\t\t\4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4 \4\n");
-printf("Enter your good name: ");
-scanf("%s",&name);
-printf("\n please enter your account no.: ");
-scanf("%d",&type);
-while(transaction == 1)
-{
-int option;
-printf("\nchoose what you want to do\n");
-printf("1 - Balance Enquiry\n");
-printf("2 - Deposit\n");
-printf("3 - Withdraw\n");
-printf("4 - transfer\n");
-scanf("%d",&option);
-switch(option)
-{
-case 1:
-printf("\t\t\t*BALANCE ENQUIRY*\n\n");
-printf("your current balance is: %.2fRs\n",balance);
-break;
-case 2:
-printf("\n\t\t\t*DEPOSIT AMMOUNT*\n\n");
-printf("how much money do you want to deposit:");
-scanf("%f",&dep);
-if(dep > 0 && dep<=20000)
-{
-printf("\nyour %.2fRs deposited in your account.\n\n",dep);
-balance+=dep;
+#include <stdio.h>
+#include <string.h>
+#define MAX_TRANSACTIONS 100
+#define MAX_PASSWORD_LENGTH 20
+#define MAX_ACCOUNTS 10
+#define INTEREST_RATE 0.03
+typedef struct {
+    float balance;
+    char name[24];
+    int accountNo;
+    char password[MAX_PASSWORD_LENGTH];
+    float depositHistory[MAX_TRANSACTIONS];
+    float withdrawHistory[MAX_TRANSACTIONS];
+    float transferHistory[MAX_TRANSACTIONS];
+    int transactionCount;
+} Account;
+Account accounts[MAX_ACCOUNTS];
+int accountCount = 0;
+void printHeader() {
+    printf("\n\t\t\t\tBANKING SYSTEM\n\n");
+    printf("\t\t********************************************\n");
+    printf("\t\t*                                          *\n");
+    printf("\t\t*  WELCOME TO OUR CBI BANKING SYSTEM       *\n");
+    printf("\t\t*                                          *\n");
+    printf("\t\t********************************************\n");
 }
-else if(dep>20000)
-{
-printf("\nyou can't deposit that much ammount in one time.\n\n");
+void displayMenu() {
+    printf("\nChoose what you want to do\n");
+    printf("1 - Balance Enquiry\n");
+    printf("2 - Deposit\n");
+    printf("3 - Withdraw\n");
+    printf("4 - Transfer\n");
+    printf("5 - View Transaction History\n");
+    printf("6 - Account Details\n");
+    printf("7 - Change Password\n");
+    printf("8 - Apply Interest\n");
+    printf("9 - Exit\n");
 }
-else
-{
-printf("\ninvalid deposit amount\n");
+int findAccount(int accountNo) {
+    for(int i = 0; i < accountCount; i++) {
+        if(accounts[i].accountNo == accountNo) {
+            return i;
+        }
+    }
+    return -1;
 }
-break;
-case 3:
-printf("\n\t\t*WITHDRAW AMMOUNT*\n\n");
-printf("how much money do you want to withdraw:");
-scanf("%f",&draw);
-if(draw<=balance && draw<=40,000)
-{
-printf("\nyou just withdraw %.2fRs\n\n",draw);
-balance-=draw;
+
+void deposit(Account *acc) {
+    float dep;
+    printf("\n\t\t\t*DEPOSIT AMOUNT*\n\n");
+    printf("How much money do you want to deposit: ");
+    scanf("%f", &dep);
+    if(dep > 0 && dep <= 20000) {
+        acc->balance += dep;
+        acc->depositHistory[acc->transactionCount++] = dep;
+        printf("\nYour %.2fRs deposited in your account.\n\n", dep);
+    } else if(dep > 20000) {
+        printf("\nYou can't deposit that much amount in one time.\n\n");
+    } else {
+        printf("\nInvalid deposit amount\n");
+    }
 }
-else if(draw>40,000)
-{
-printf("\nyou can't withdraw that much amount in one time.\n\n");
+
+void withdraw(Account *acc) {
+    float draw;
+    printf("\n\t\t*WITHDRAW AMOUNT*\n\n");
+    printf("How much money do you want to withdraw: ");
+    scanf("%f", &draw);
+    if(draw <= acc->balance && draw <= 40000) {
+        acc->balance -= draw;
+        acc->withdrawHistory[acc->transactionCount++] = draw;
+        printf("\nYou just withdrew %.2fRs\n\n", draw);
+    } else if(draw > 40000) {
+        printf("\nYou can't withdraw that much amount in one time.\n\n");
+    } else {
+        printf("\nYou don't have enough money\n\n");
+    }
 }
-else
-{
-printf("\nyou dont have enough money\n\n");
+
+void transfer(Account *acc) {
+    int account2Index;
+    float transfer;
+    int account2;
+    printf("\t\t\tTRANSFER AMOUNT \n\n");
+    printf("\n\t\tAccount You Want To Transfer: ");
+    scanf("%d", &account2);
+    account2Index = findAccount(account2);
+    if(account2Index == -1) {
+        printf("Account not found.\n");
+        return;
+    }
+    printf("\nHow much amount?: ");
+    scanf("%f", &transfer);
+    if(acc->balance >= transfer) {
+        acc->balance -= transfer;
+        accounts[account2Index].balance += transfer;
+        acc->transferHistory[acc->transactionCount++] = transfer;
+        printf("\nYour %.2fRs successfully transferred\n\n", transfer);
+    } else {
+        printf("\nYou do not have sufficient balance\n\n");
+    }
 }
-break;
-case 4:
-printf("\t\t\tTRANSFER AMMOUNT \n\n");
-printf("\n\t\tAccount You Want To Transfer: ");
-scanf("%d",&account2);
-printf("\nhow much ammount?: ");
-scanf("%f",&transfer);
-if(balance>=transfer)
-{
-printf("\nyour %.2fRs successfully transfered\n\n",transfer);
-balance-=transfer;
+
+void viewTransactionHistory(Account *acc) {
+    printf("\nTransaction History:\n");
+    printf("Deposits:\n");
+    for(int i = 0; i < acc->transactionCount; i++) {
+        if(acc->depositHistory[i] > 0) {
+            printf("%.2fRs\n", acc->depositHistory[i]);
+        }
+    }
+    printf("Withdrawals:\n");
+    for(int i = 0; i < acc->transactionCount; i++) {
+        if(acc->withdrawHistory[i] > 0) {
+            printf("%.2fRs\n", acc->withdrawHistory[i]);
+        }
+    }
+    printf("Transfers:\n");
+    for(int i = 0; i < acc->transactionCount; i++) {
+        if(acc->transferHistory[i] > 0) {
+            printf("%.2fRs\n", acc->transferHistory[i]);
+        }
+    }
 }
-else
-{printf("\nyou do not have sufficient balance\n\n");}
-break;
-default:
-printf("invalid transaction\n");
+
+void accountDetails(Account *acc) {
+    printf("\n\t\t\t*ACCOUNT DETAILS*\n\n");
+    printf("Your name: %s\n", acc->name);
+    printf("Your account no: %d\n", acc->accountNo);
+    printf("Your current balance: %.2fRs\n", acc->balance);
 }
-transaction=0;
-while(transaction!=1 && transaction!=2)
-{
-printf("do you want to do another transaction?\n");
-printf("1. yes 2. no\n");
-scanf("%d",&transaction);
-if(transaction!=1 && transaction!=2)
-{printf("invalid no.\nchoose between 1 and 2 only\n");}}}
-printf("\n\t\t\t    -----------------------");
-printf("\n\t\t\t\tCBI BANK LIMITED\n");
-printf("\t\t\t    -----------------------\n\n");
-printf("\t\t\tDate:3/5/16\t   Time:10:20 Am\n");
-printf("\n\t\t\t\4 Your name: %s\n\n",name);
-printf("\t\t\t\4 Your account no: %d\n\n",type);
-if(dep >= 0 && dep < 20000)
-{
-printf("\t\t\t\4 You've deposited %.2fRs\n",dep);
+
+void changePassword(Account *acc) {
+    char newPassword[MAX_PASSWORD_LENGTH];
+    printf("\nEnter your new password: ");
+    scanf("%s", newPassword);
+    strncpy(acc->password, newPassword, MAX_PASSWORD_LENGTH - 1);
+    acc->password[MAX_PASSWORD_LENGTH - 1] = '\0'; 
+    printf("Password successfully changed!\n");
 }
-else
-{printf("\t\t\t\4 You've deposited 0Rs\n");}
-if(draw>0 && draw<=20000 && draw<=balance)
-{
-printf("\t\t\t\4 You've withdraw %.2fRs\n",draw);
+
+void applyInterest(Account *acc) {
+    float interest = acc->balance * INTEREST_RATE;
+    acc->balance += interest;
+    printf("Interest of %.2fRs has been applied to your account.\n", interest);
 }
-else
-{printf("\t\t\t\4 You've withdraw 0Rs\n");}
-if(transfer>0 && transfer<=20000 && transfer<=balance)
-{
-printf("\t\t\t\4 You've Transfered %.2fRs\n",transfer);}
-else
-{printf("You've Transfered 0Rs\n ");}
-printf("\n\t\t\t\t    Thank you! \n");
-printf("\t\t\t   Welcome to CBI Banking System\n");
-printf("\t\t\t      www.CBIBANKINGSYSTEM.com\n");
-getch();
-return(0);
+int main() {
+    accounts[0].balance = 40000;
+    strcpy(accounts[0].name, "Soaib Aslam");
+    accounts[0].accountNo = 3641884681;
+    strcpy(accounts[0].password, "Soaib@123"); 
+    accountCount = 1; 
+
+    int accountNo;
+    char password[MAX_PASSWORD_LENGTH];
+    int accountIndex;
+    
+    printHeader();
+    printf("Please enter your account no.: ");
+    scanf("%d", &accountNo);
+    accountIndex = findAccount(accountNo);
+    
+    if (accountIndex == -1) {
+        printf("Account not found.\n");
+        return 1;
+    }
+    
+    printf("Please enter your password: ");
+    scanf("%s", password);
+    
+    if (strcmp(accounts[accountIndex].password, password) != 0) {
+        printf("Incorrect password.\n");
+        return 1;
+    }
+
+    int transaction = 1;
+    while(transaction == 1) {
+        int option;
+        displayMenu();
+        scanf("%d", &option);
+        switch(option) {
+            case 1:
+                printf("\t\t\t*BALANCE ENQUIRY*\n\n");
+                printf("Your current balance is: %.2fRs\n", accounts[accountIndex].balance);
+                break;
+            case 2:
+                deposit(&accounts[accountIndex]);
+                break;
+            case 3:
+                withdraw(&accounts[accountIndex]);
+                break;
+            case 4:
+                transfer(&accounts[accountIndex]);
+                break;
+            case 5:
+                viewTransactionHistory(&accounts[accountIndex]);
+                break;
+            case 6:
+                accountDetails(&accounts[accountIndex]);
+                break;
+            case 7:
+                changePassword(&accounts[accountIndex]);
+                break;
+            case 8:
+                applyInterest(&accounts[accountIndex]);
+                break;
+            case 9:
+                printf("Exiting...\n");
+                return 0;
+            default:
+                printf("Invalid transaction\n");
+        }
+        printf("Do you want to do another transaction?\n");
+        printf("1. Yes 2. No\n");
+        scanf("%d", &transaction);
+    }
+
+    printf("\n\t\t\t    -----------------------");
+    printf("\n\t\t\t\tCBI BANK LIMITED\n");
+    printf("\t\t\t    -----------------------\n\n");
+    printf("\t\t\tDate: 3/5/16\t   Time: 10:20 AM\n");
+    printf("\n\t\t\tYour name: %s\n", accounts[accountIndex].name);
+    printf("\t\t\tYour account no: %d\n", accounts[accountIndex].accountNo);
+    printf("\t\t\tYour final balance: %.2fRs\n", accounts[accountIndex].balance);
+    printf("\n\t\t\t\t    Thank you! \n");
+    printf("\t\t\t   Welcome to CBI Banking System\n");
+    printf("\t\t\t      www.CBIBANKINGSYSTEM.com\n");
+
+    return 0;
 }
